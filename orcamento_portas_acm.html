@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orçamento de Portas em ACM</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: auto;
+        }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group select,
+        .form-group textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        .add-item-btn {
+            background-color: #5cb85c;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .add-item-btn:hover {
+            background-color: #4cae4c;
+        }
+        .download-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: block;
+            width: 100%;
+            margin-top: 30px;
+            font-size: 1.1em;
+        }
+        .download-btn:hover {
+            background-color: #0056b3;
+        }
+        .porta-section {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #fafafa;
+        }
+        .porta-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .item-section {
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f8fff8;
+            position: relative;
+        }
+        .item-section h3 {
+            margin-top: 0;
+            color: #28a745;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 10px;
+        }
+        .remove-item-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        .remove-item-btn:hover {
+            background-color: #c82333;
+        }
+        .brise-item-section {
+            border-color: #ffc107;
+            background-color: #fff8e1;
+        }
+        .brise-item-section h3 {
+            color: #ffc107;
+            border-color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Orçamento de Portas em ACM</h1>
+
+        <div class="form-group">
+            <label for="vendedor">Nome do Vendedor:</label>
+            <input type="text" id="vendedor" name="vendedor">
+        </div>
+
+        <div class="form-group">
+            <label for="loja">Número da Loja:</label>
+            <input type="text" id="loja" name="loja">
+        </div>
+
+        <div class="form-group">
+            <label for="pedido">Número do Pedido:</label>
+            <input type="text" id="pedido" name="pedido">
+        </div>
+
+        <div class="form-group">
+            <label for="numeroPortas">Número de Portas:</label>
+            <input type="number" id="numeroPortas" name="numeroPortas" min="0" value="1" onchange="atualizarPortas()">
+        </div>
+
+        <h2 id="detalhesPortasTitulo">Detalhes das Portas</h2>
+        <div id="portasContainer">
+            <!-- As portas serão geradas dinamicamente aqui -->
+        </div>
+
+        <h2>Itens Adicionais</h2>
+        <div style="margin-bottom: 20px;">
+            <button type="button" class="add-item-btn" onclick="addItemManual()">Adicionar Item Manual</button>
+        </div>
+        <div id="itensContainer">
+            <!-- Os itens manuais serão gerados dinamicamente aqui -->
+        </div>
+
+        <h2>Itens BRISE</h2>
+        <div style="margin-bottom: 20px;">
+            <button type="button" class="add-item-btn" onclick="addBriseItem()">Adicionar BRISE</button>
+        </div>
+        <div id="briseItensContainer">
+            <!-- Os itens BRISE serão gerados dinamicamente aqui -->
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background-color: #f9f9f9; border-radius: 8px;">
+            <h3>Resumo do Orçamento</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 1.2em; font-weight: bold;">
+                <span>Total Geral:</span>
+                <span id="totalGeral">R$ 0,00</span>
+            </div>
+        </div>
+
+        <button type="button" class="download-btn" onclick="gerarPDF()">Baixar Orçamento (PDF)</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        let contadorPedidos = 0;
+
+        function gerarNumeroPedido() {
+            const anoAtual = new Date().getFullYear();
+            contadorPedidos++;
+            const numeroPedido = `${anoAtual}-${String(contadorPedidos).padStart(3, '0')}`;
+            document.getElementById("pedido").value = numeroPedido;
+        }
+
+        function atualizarPortas() {
+            const numeroPortas = parseInt(document.getElementById("numeroPortas").value) || 0;
+            const portasContainer = document.getElementById("portasContainer");
+            const detalhesPortasTitulo = document.getElementById("detalhesPortasTitulo");
+
+            if (numeroPortas === 0) {
+                portasContainer.innerHTML = "";
+                portasContainer.style.display = "none";
+                detalhesPortasTitulo.style.display = "none";
+            } else {
+                portasContainer.style.display = "block";
+                detalhesPortasTitulo.style.display = "block";
+                portasContainer.innerHTML = "";
+                for (let i = 1; i <= numeroPortas; i++) {
+                    const portaSection = document.createElement("div");
+                    portaSection.className = "porta-section";
+                    portaSection.innerHTML = `
+                        <h3>Porta ${i}</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Descrição:</label>
+                                <input type="text" class="descricao" value="Porta ACM ${i}" onchange="calcularTotalGeral()">
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo de Abertura:</label>
+                                <select class="tipoAbertura" onchange="calcularTotalGeral()">
+                                    <option value="">Selecione</option>
+                                    <option value="Pivotante">PIVOTANTE</option>
+                                    <option value="Dobradica">DOBRADIÇA</option>
+                                    <option value="Dupla Vedacao">DUPLA VEDAÇÃO</option>
+                                    <option value="Correr">CORRER</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Cor:</label>
+                                <input type="text" class="cor" placeholder="Digite a cor específica" onchange="calcularTotalGeral()">
+                            </div>
+                            <div class="form-group">
+                                <label>Preço Unitário (R$):</label>
+                                <input type="number" class="precoUnitario" value="0.00" min="0" step="0.01" onchange="calcularTotalGeral()">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Observações:</label>
+                            <textarea class="observacoes" placeholder="Digite observações específicas para esta porta..."></textarea>
+                        </div>
+                    `;
+                    portasContainer.appendChild(portaSection);
+                }
+            }
+            calcularTotalGeral();
+        }
+
+        function calcularTotalGeral() {
+            let totalGeral = 0;
+            
+            // Somar preços das portas
+            document.querySelectorAll(".porta-section").forEach(section => {
+                const preco = parseFloat(section.querySelector(".precoUnitario").value) || 0;
+                totalGeral += preco;
+            });
+            
+            // Somar preços dos itens manuais
+            document.querySelectorAll(".item-section").forEach(section => {
+                const quantidade = parseFloat(section.querySelector(".quantidade").value) || 0;
+                const precoUnitario = parseFloat(section.querySelector(".precoUnitario").value) || 0;
+                const total = quantidade * precoUnitario;
+                totalGeral += total;
+            });
+
+            // Somar preços dos itens BRISE
+            document.querySelectorAll(".brise-item-section").forEach(section => {
+                const precoTotalBrise = parseFloat(section.querySelector(".precoTotalBrise").value) || 0;
+                totalGeral += precoTotalBrise;
+            });
+            
+            document.getElementById("totalGeral").textContent = `R$ ${totalGeral.toFixed(2)}`;
+        }
+
+        function addItemManual() {
+            const itensManuaisContainer = document.getElementById("itensContainer");
+            const newItemIndex = itensManuaisContainer.children.length + 1;
+            const itemSection = document.createElement("div");
+            itemSection.className = "item-section";
+            itemSection.innerHTML = `
+                <h3>Item ${newItemIndex} <button type="button" class="remove-item-btn" onclick="removerItem(this)">Remover</button></h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemDescricao_${newItemIndex}">Descrição:</label>
+                        <input type="text" id="itemDescricao_${newItemIndex}" class="descricao" placeholder="Digite a descrição do item" oninput="calcularTotalGeral()">
+                    </div>
+                    <div class="form-group">
+                        <label for="itemQuantidade_${newItemIndex}">Quantidade:</label>
+                        <input type="number" id="itemQuantidade_${newItemIndex}" class="quantidade" value="1" min="1" step="1" oninput="calcularTotalGeral()">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemPrecoUnitario_${newItemIndex}">Preço Unitário (R$):</label>
+                        <input type="number" id="itemPrecoUnitario_${newItemIndex}" class="precoUnitario" value="0.00" min="0" step="0.01" oninput="calcularTotalGeral()">
+                    </div>
+                </div>
+            `;
+            itensManuaisContainer.appendChild(itemSection);
+            calcularTotalGeral();
+        }
+
+        function addBriseItem() {
+            const briseItensContainer = document.getElementById("briseItensContainer");
+            const newBriseItemIndex = briseItensContainer.children.length + 1;
+            const briseItemSection = document.createElement("div");
+            briseItemSection.className = "item-section brise-item-section";
+            briseItemSection.innerHTML = `
+                <h3>BRISE ${newBriseItemIndex} <button type="button" class="remove-item-btn" onclick="removerItem(this)">Remover</button></h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="briseCor_${newBriseItemIndex}">Cor:</label>
+                        <input type="text" id="briseCor_${newBriseItemIndex}" class="briseCor" placeholder="Digite a cor do BRISE" oninput="calcularTotalGeral()">
+                    </div>
+                    <div class="form-group">
+                        <label for="briseM2_${newBriseItemIndex}">M²:</label>
+                        <input type="number" id="briseM2_${newBriseItemIndex}" class="briseM2" value="0.00" min="0" step="0.01" oninput="calcularTotalGeral()">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="brisePrecoTotal_${newBriseItemIndex}">Preço Total (R$):</label>
+                        <input type="number" id="brisePrecoTotal_${newBriseItemIndex}" class="precoTotalBrise" value="0.00" min="0" step="0.01" oninput="calcularTotalGeral()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="briseObservacoes_${newBriseItemIndex}">Observações:</label>
+                    <textarea id="briseObservacoes_${newBriseItemIndex}" class="briseObservacoes" placeholder="Observações para o BRISE"></textarea>
+                </div>
+            `;
+            briseItensContainer.appendChild(briseItemSection);
+            calcularTotalGeral();
+        }
+
+        function removerItem(button) {
+            button.closest(".item-section").remove();
+            calcularTotalGeral();
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            atualizarPortas();
+            gerarNumeroPedido();
+        });
+
+        function gerarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Configurações do documento
+            doc.setFontSize(20);
+            doc.text("Orçamento de Portas em ACM", 20, 30);
+            
+            // Informações do vendedor e loja
+            doc.setFontSize(12);
+            const vendedor = document.getElementById("vendedor").value || "Não informado";
+            const loja = document.getElementById("loja").value || "Não informado";
+            const pedido = document.getElementById("pedido").value || "Não informado";
+            const numeroPortas = document.getElementById("numeroPortas").value || "0";
+            
+            doc.text(`Vendedor: ${vendedor}`, 20, 50);
+            doc.text(`Loja: ${loja}`, 20, 60);
+            doc.text(`Pedido: ${pedido}`, 20, 70);
+            doc.text(`Número de Portas: ${numeroPortas}`, 20, 80);
+            
+            // Data atual
+            const dataAtual = new Date().toLocaleDateString("pt-BR");
+            doc.text(`Data: ${dataAtual}`, 20, 90);
+            
+            // Detalhes das portas
+            doc.setFontSize(14);
+            let yPosition = 110;
+            
+            const portasContainer = document.getElementById("portasContainer");
+            if (portasContainer.style.display !== "none") {
+                doc.text("Detalhes das Portas:", 20, yPosition);
+                yPosition += 15;
+                
+                doc.setFontSize(10);
+                document.querySelectorAll(".porta-section").forEach((section, index) => {
+                    const descricao = section.querySelector(".descricao").value || "";
+                    const tipoAbertura = section.querySelector(".tipoAbertura").value || "Não informado";
+                    const cor = section.querySelector(".cor").value || "Não informado";
+                    const precoUnitario = parseFloat(section.querySelector(".precoUnitario").value) || 0;
+                    const observacoes = section.querySelector(".observacoes").value || "";
+                    
+                    // Cabeçalho da porta
+                    doc.setFontSize(12);
+                    doc.text(`Porta ${index + 1}:`, 20, yPosition);
+                    yPosition += 10;
+                    
+                    doc.setFontSize(10);
+                    doc.text(`Descrição: ${descricao}`, 25, yPosition);
+                    yPosition += 8;
+                    doc.text(`Tipo de Abertura: ${tipoAbertura}`, 25, yPosition);
+                    yPosition += 8;
+                    doc.text(`Cor: ${cor}`, 25, yPosition);
+                    yPosition += 8;
+                    doc.text(`Preço: R$ ${precoUnitario.toFixed(2)}`, 25, yPosition);
+                    yPosition += 8;
+                    
+                    if (observacoes.trim() !== "") {
+                        doc.text(`Observações: ${observacoes}`, 25, yPosition);
+                        yPosition += 8;
+                    }
+                    
+                    // Verificar se precisa de nova página
+                    if (yPosition > 250) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                });
+            }
+
+            // Itens adicionais
+            const itensAdicionais = document.querySelectorAll(".item-section");
+            if (itensAdicionais.length > 0) {
+                if (yPosition > 20) { // Adiciona espaço se já houver conteúdo
+                    yPosition += 10;
+                }
+                doc.setFontSize(14);
+                doc.text("Itens Adicionais:", 20, yPosition);
+                yPosition += 15;
+                
+                doc.setFontSize(10);
+                itensAdicionais.forEach((section, index) => {
+                    const descricao = section.querySelector(`.descricao`).value || "";
+                    const quantidade = parseFloat(section.querySelector(`.quantidade`).value) || 0;
+                    const precoUnitario = parseFloat(section.querySelector(`.precoUnitario`).value) || 0;
+                    const total = quantidade * precoUnitario;
+
+                    doc.setFontSize(12);
+                    doc.text(`Item ${index + 1}:`, 20, yPosition);
+                    yPosition += 10;
+
+                    doc.setFontSize(10);
+                    doc.text(`Descrição: ${descricao}`, 25, yPosition);
+                    yPosition += 8;
+                    doc.text(`Quantidade: ${quantidade}`, 25, yPosition);
+                    yPosition += 8;
+                    doc.text(`Preço Unitário: R$ ${precoUnitario.toFixed(2)}`, 25, yPosition);
+                    yPosition += 8;
+                    doc.text(`Total: R$ ${total.toFixed(2)}`, 25, yPosition);
+                    yPosition += 10;
+
+                    if (yPosition > 250) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                });
+            }
+
+            // Itens BRISE
+            const briseItens = document.querySelectorAll(".brise-item-section");
+            if (briseItens.length > 0) {
+                if (yPosition > 20) { // Adiciona espaço se já houver conteúdo
+                    yPosition += 10;
+                }
+                doc.setFontSize(14);
+                doc.text("Itens BRISE:", 20, yPosition);
+                yPosition += 15;
+                
+                doc.setFontSize(10);
+                briseItens.forEach((section, index) => {
+                    const corBrise = section.querySelector(`.briseCor`).value || "";
+                    const m2Brise = parseFloat(section.querySelector(`.briseM2`).value) || 0;
+                    const precoTotalBrise = parseFloat(section.querySelector(`.precoTotalBrise`).value) || 0;
+                    const observacoesBrise = section.querySelector(`.briseObservacoes`).value || "";
+
+                    doc.setFontSize(12);
+                    doc.text(`BRISE ${index + 1}:`, 20, yPosition);
+                    yPosition += 10;
+
+                    doc.setFontSize(10);
+                    doc.text(`Cor: ${corBrise}`, 25, yPosition);
+                    yPosition += 8;
+                    doc.text(`M²: ${m2Brise.toFixed(2)}`, 25, yPosition);
+                    yPosition += 8;
+                    doc.text(`Preço Total: R$ ${precoTotalBrise.toFixed(2)}`, 25, yPosition);
+                    yPosition += 8;
+                    if (observacoesBrise.trim() !== "") {
+                        doc.text(`Observações: ${observacoesBrise}`, 25, yPosition);
+                        yPosition += 8;
+                    }
+                    yPosition += 10;
+
+                    if (yPosition > 250) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                });
+            }
+
+            // Total Geral
+            doc.setFontSize(16);
+            doc.text(`Total Geral: ${document.getElementById("totalGeral").textContent}`, 20, yPosition + 20);
+
+            doc.save("orcamento_portas_acm.pdf");
+        }
+    </script>
+</body>
+</html>
+
